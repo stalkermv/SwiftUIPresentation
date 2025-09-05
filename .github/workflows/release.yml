@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: macos-15
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Swift
+      uses: swift-actions/setup-swift@v2
+      with:
+        swift-version: "6.1"
+        
+    - name: Run tests
+      run: swift test --parallel
+      
+    - name: Build package
+      run: swift build -c release
+      
+    - name: Generate documentation
+      run: swift package plugin generate-documentation --target SwiftUIPresentation
+      
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## What's Changed
+          
+          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+          
+          ## Installation
+          
+          Add this package to your project through Xcode or Swift Package Manager:
+          
+          ```swift
+          dependencies: [
+              .package(url: "https://github.com/stalkermv/SwiftUIPresentation", from: "${{ github.ref }}")
+          ]
+          ```
+          
+          ## Requirements
+          
+          - iOS 17.0+ / macOS 14.0+
+          - Swift 6.0+
+          - Xcode 16.0+
+        draft: false
+        prerelease: false

@@ -1,0 +1,33 @@
+.DS_Store
+/.build
+/Packages
+xcuserdata/
+DerivedData/
+.swiftpm/configuration/registries.json
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+.netrc
+
+# Documentation build artifacts
+.docc-build/
+docs/
+
+# Test coverage
+*.lcov
+*.profraw
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Package resolution
+Package.pins
+Package.resolved
+
+# Xcode project files (not needed for SPM)
+*.xcodeproj
+*.xcworkspace
