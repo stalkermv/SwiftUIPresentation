@@ -18,7 +18,10 @@ where D: Hashable, C: View {
             let builders = value.builders
             value.builders = { data in
                 if let data = data as? D {
-                    return AnyView(destination(data).embedInPresentation(data))
+                    return AnyView(
+                        destination(data)
+                            .environment(\.presentationStackNamespace, .child(PresentationStackKey(key: data)))
+                    )
                 } else {
                     return builders(data)
                 }
@@ -27,21 +30,20 @@ where D: Hashable, C: View {
     }
 }
 
-private extension View {
-    func embedInPresentation<K: Hashable>(_ key: K) -> some View {
-        self.modifier(PresentationContainerViewModifier(key: key))
+extension View {
+    public func embedInPresentation() -> some View {
+        self.modifier(PresentationContainerViewModifier())
     }
 }
 
-struct PresentationContainerViewModifier<Key: Hashable> : ViewModifier {
+struct PresentationContainerViewModifier : ViewModifier {
+    @Environment(\.presentationStackNamespace) private var namespace
     @Environment(\.presentation) private var presentation
-    
-    let key: Key
-    
+        
     func body(content: Content) -> some View {
-        if let presentation {
+        if let presentation, namespace != .root {
             PresentationStack(
-                namespace: .child(PresentationStackKey(key: key)),
+                namespace: namespace,
                 path: .binding(presentation.$presentationPath),
                 content: { content }
             )

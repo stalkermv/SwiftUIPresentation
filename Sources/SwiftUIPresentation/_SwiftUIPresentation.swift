@@ -37,9 +37,9 @@ struct ContentView: View {
             }
             .presentationDestination(for: User.self) { user in
                 UserView(user: user)
+                    .embedInPresentation()
                     .presentationCompactAdaptation(.fullScreenCover)
             }
-           
         }
         .onChange(of: path) { oldValue, newValue in
             print("PresentationPath changed from to \(newValue)")

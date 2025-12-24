@@ -96,7 +96,7 @@ public struct PresentationLink<Value: Hashable, Label: View>: View {
     ///   - label: A view builder that creates the link’s visual representation.
     public init(
         value: Value,
-        presentationType: PresentationType = .sheet,
+        method presentationType: PresentationType = .sheet,
         @ViewBuilder label: @escaping () -> Label
     ) {
         self.value = value
@@ -112,10 +112,12 @@ public struct PresentationLink<Value: Hashable, Label: View>: View {
     }
     
     private func present() {
-        if presentationType == .stack {
-            presentation?.push(value: value)
+        if presentationType == .stack, let presentation {
+            presentation.push(value: value)
+        } else if let presentation {
+            presentation.present(value: value)
         } else {
-            presentation?.present(value: value)
+            fatalError("No PresentationStack found in the view hierarchy")
         }
     }
 }

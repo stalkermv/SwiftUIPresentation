@@ -95,6 +95,8 @@ public struct PresentationPath: Equatable, Sendable {
     public mutating func removeLast() {
         removeLast(from: .root)
     }
+    
+    public init() {}
 }
 
 extension PresentationPath: CustomDebugStringConvertible {
