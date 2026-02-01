@@ -150,4 +150,26 @@ struct PresentationPathContractTests {
         #expect(path.stack[.root]?.path.count == 1, "Root namespace should be unaffected")
         #expect(path.stack[childNamespace]?.path.count == 0, "Child namespace should be empty")
     }
+
+    @Test("DismissSheet presenting clears item in namespace that has that value")
+    func testDismissSheetPresentingClearsRootItem() {
+        var path = PresentationPath()
+        path.present("Modal", over: .root)
+        #expect(path.stack[.root]?.item != nil, "Item should be set before dismissSheet")
+
+        path.dismiss(presenting: AnyHashable("Modal"))
+        #expect(path.stack[.root]?.item == nil, "dismissSheet(presenting:) should clear root item")
+    }
+
+    @Test("RemoveLast from child with empty stack and nil item dismisses parent sheet")
+    func testRemoveLastFromChildDismissesParentSheet() {
+        var path = PresentationPath()
+        let childKey = PresentationStackKey(key: "Sheet")
+        let childNamespace = PresentationStackNamespace.child(childKey)
+        path.present("Sheet", over: .root)
+        #expect(path.stack[.root]?.item != nil, "Root should have presented sheet")
+
+        path.removeLast(from: childNamespace)
+        #expect(path.stack[.root]?.item == nil, "removeLast from empty child should dismiss root sheet")
+    }
 }

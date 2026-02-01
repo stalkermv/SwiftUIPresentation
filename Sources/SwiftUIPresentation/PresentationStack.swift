@@ -97,84 +97,42 @@ extension PresentationStack {
 struct PresentationSheetBuildersModifier: ViewModifier {
     @Environment(\.presentationStackNamespace) private var namespace
     @Binding var path: PresentationPath
-    
-//    @State private var adaptation: PresentationAdaptation = .automatic
-    
-    private var itemBinding: Binding<PresentationPath.PresentationItem?> {
-        Binding(
-            get: { path.stack[namespace]?.item },
-            set: { path.stack[namespace]?.item = $0 }
-        )
-    }
-    
+
     func body(content: Content) -> some View {
         content.backgroundPreferenceValue(PresentationDestinationSheetPreferenceKey.self) { value in
-            
             let root = value.builders(path.stack[namespace]?.item?.value)
             if #available(iOS 18.0, *) {
                 Group(subviews: root) { subviews in
                     let presentationAdaptation = subviews.first?.containerValues.presentationAdaptation
                     let adaptation = unsafeBitCast(presentationAdaptation, to: PresentationAdaptation.self)
-                    
-                    let fullScreenCoverBinding = Binding(
-                        get: {
-                            if adaptation.kind == .fullScreenCover {
-                                return path.stack[namespace]?.item
-                            } else {
-                                return nil
-                            }
-                        },
-                        set: { newValue in
-                            if adaptation.kind == .fullScreenCover {
-                                path.stack[namespace]?.item = newValue
-                            }
-                        }
-                    )
-                    
-                    let sheetBinding = Binding(
-                        get: {
-                            if adaptation.kind == .sheet || adaptation.kind == .automatic {
-                                return path.stack[namespace]?.item
-                            } else {
-                                return nil
-                            }
-                        },
-                        set: { newValue in
-                            if adaptation.kind == .sheet || adaptation.kind == .automatic {
-                                path.stack[namespace]?.item = newValue
-                            }
-                        }
-                    )
-                    
-                    let popoverBinding = Binding(
-                        get: {
-                            if adaptation.kind == .popover {
-                                return path.stack[namespace]?.item
-                            } else {
-                                return nil
-                            }
-                        },
-                        set: { newValue in
-                            if adaptation.kind == .popover {
-                                path.stack[namespace]?.item = newValue
-                            }
-                        }
-                    )
-                    
+
                     Color.clear
-                        .fullScreenCover(item: fullScreenCoverBinding) { destination in
-                            value.builders(destination.value)
-                        }
-                        .sheet(item: sheetBinding) { destination in
-                            value.builders(destination.value)
-                        }
-                        .popover(item: popoverBinding) { destination in
-                            value.builders(destination.value)
-                        }
+                        .fullScreenCover(isPresented: isPresentedBinding(adaptation: adaptation) { $0 == .fullScreenCover }) { sheetContent(value: value) }
+                        .sheet(isPresented: isPresentedBinding(adaptation: adaptation) { $0 == .sheet || $0 == .automatic }) { sheetContent(value: value) }
+                        .popover(isPresented: isPresentedBinding(adaptation: adaptation) { $0 == .popover }) { sheetContent(value: value) }
                 }
             } else {
                 // Fallback on earlier versions
             }
+        }
+    }
+
+    private func isPresentedBinding(adaptation: PresentationAdaptation, kindMatches: @escaping (PresentationAdaptation.Kind) -> Bool) -> Binding<Bool> {
+        Binding(
+            get: { kindMatches(adaptation.kind) && path.stack[namespace]?.item != nil },
+            set: { newValue in
+                guard !newValue else { return }
+                var pathCopy = path
+                pathCopy.clearPresentedItem(in: namespace)
+                path = pathCopy
+            }
+        )
+    }
+
+    @ViewBuilder
+    private func sheetContent(value: PresentationDestinationSheetPreferenceKey.Value) -> some View {
+        if let item = path.stack[namespace]?.item {
+            value.builders(item.value)
         }
     }
 }

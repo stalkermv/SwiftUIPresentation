@@ -67,9 +67,20 @@ public struct PresentationRouter: @unchecked Sendable {
     /// Dismisses the presented sheet in this router's namespace.
     ///
     /// If no sheet is currently showing, this method does nothing.
+    /// When called from inside a sheet (child namespace), dismisses the sheet
+    /// that hosts the current view.
     public func dismiss() {
-        var container = presentationPath.stack[namespace, default: PresentationPath.PresentationContainer()]
-        container.item = nil
-        presentationPath.stack[namespace] = container
+        switch namespace {
+        case .root:
+            mutatePath { $0.clearPresentedItem(in: .root) }
+        case .child(let key):
+            mutatePath { $0.dismiss(presenting: key.key) }
+        }
+    }
+
+    private func mutatePath(_ body: (inout PresentationPath) -> Void) {
+        var path = presentationPath
+        body(&path)
+        presentationPath = path
     }
 }

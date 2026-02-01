@@ -82,4 +82,19 @@ struct PresentationRouterTests {
         #expect(box.value.stack[.root]?.path.count == 1, "Stack should remain unchanged")
         #expect(box.value.stack[.root]?.item == nil, "Modal should be dismissed")
     }
+
+    @Test("Dismiss from child namespace closes sheet hosted by root")
+    func testDismissFromChildNamespaceClosesSheet() {
+        final class Box: @unchecked Sendable { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
+        let box = Box(PresentationPath())
+        box.value.present("Sheet", over: .root)
+        #expect(box.value.stack[.root]?.item != nil, "Root should have presented sheet")
+
+        let binding = Binding(get: { box.value }, set: { box.value = $0 })
+        let childKey = PresentationStackKey(key: "Sheet")
+        let router = PresentationRouter(namespace: .child(childKey), presentationPath: binding)
+        router.dismiss()
+
+        #expect(box.value.stack[.root]?.item == nil, "Dismiss from inside sheet should clear root item")
+    }
 }
