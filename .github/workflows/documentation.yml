@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure Pages
+        if: ${{ !github.event.repository.private }}
         uses: actions/configure-pages@v5
 
       - name: Setup Swift
@@ -40,6 +41,7 @@ jobs:
             --hosting-base-path SwiftUIPresentation
 
       - name: Upload pages artifact
+        if: ${{ !github.event.repository.private }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./docs
@@ -47,6 +49,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: build-documentation
+    if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
     permissions:
       pages: write
