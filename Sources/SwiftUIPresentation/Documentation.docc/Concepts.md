@@ -40,10 +40,12 @@ destinations once and navigate by presenting values:
 // Register what to show for each type
 .presentationDestination(for: User.self) { user in
     UserProfile(user: user)
+        .presentationAdaptation(.fullScreenCover)
 }
 
 // Navigate by presenting values
-PresentationLink(value: selectedUser, presentationType: .stack) { ... }
+PresentationLink(value: selectedUser) { ... }
+PresentationLink(value: selectedUser, method: .stack) { ... }
 ```
 
 ## Environment Router

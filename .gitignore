@@ -31,3 +31,4 @@ Package.resolved
 # Xcode project files (not needed for SPM)
 *.xcodeproj
 *.xcworkspace
+/.build-local

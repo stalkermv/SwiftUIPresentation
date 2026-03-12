@@ -1,6 +1,6 @@
 # Getting Started
 
-Learn the basics of creating mixed navigation flows.
+Learn the smallest viable setup for mixed stack and modal navigation.
 
 ## Basic setup
 
@@ -16,7 +16,7 @@ struct ContentView: View {
     var body: some View {
         PresentationStack(path: $path) {
             List(users) { user in
-                PresentationLink(value: user, presentationType: .stack) {
+                PresentationLink(value: user) {
                     Text(user.name)
                 }
             }
@@ -39,7 +39,7 @@ PresentationLink(value: user) {
 }
 
 // Explicit stack navigation
-PresentationLink(value: user, presentationType: .stack) {
+PresentationLink(value: user, method: .stack) {
     Text("Navigate to Profile")  
 }
 
@@ -51,27 +51,23 @@ NavigationLink(value: user) {
 
 ## Native SwiftUI Integration
 
-All native SwiftUI presentation and navigation modifiers work seamlessly:
+Use one destination registration and choose the modal host from the destination:
 
 ```swift
 .presentationDestination(for: User.self) { user in
     UserProfileView(user: user)
-        // Native presentation modifiers
-        .presentationDetents([.medium, .large])
-        .presentationCompactAdaptation(.fullScreenCover)
-        .presentationBackground(.regularMaterial)
-        .interactiveDismissDisabled()
-        .presentationCornerRadius(20)
+        .presentationAdaptation(.fullScreenCover)
+        .presentationDetents([.large])
 }
 
 .presentationDestination(for: Document.self) { document in
     DocumentView(document: document)
-        // Native navigation modifiers
-        .navigationTransition(.zoom(sourceID: document.id, in: namespace))
-        .toolbarRole(.editor)
-        .navigationBarTitleDisplayMode(.inline)
+        .presentationAdaptation(.popover)
 }
 ```
+
+On runtimes earlier than iOS 18, SwiftUIPresentation falls back to a standard
+sheet host.
 
 ## Multiple data types
 
@@ -123,7 +119,7 @@ struct ContentView: View {
     var body: some View {
         PresentationStack(path: $path) {
             Button("Navigate Programmatically") {
-                path.append(User(id: 1))
+                path.append(User(id: UUID(), name: "Blob"))
                 path.present(SettingsData(), over: .root)
             }
         }

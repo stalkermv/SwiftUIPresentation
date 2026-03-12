@@ -1,7 +1,7 @@
 # ``SwiftUIPresentation``
 
-Create navigation experiences that seamlessly combine stack navigation
-and modal sheets.
+Create iOS navigation flows that combine stack pushes and modal presentations
+without splitting state across multiple APIs.
 
 ## Overview
 
@@ -13,8 +13,9 @@ multiple contexts, making your navigation logic easier to test and maintain.
 ### How it works
 
 1. Wrap your content in a ``PresentationStack``
-2. Use ``SwiftUIPresentation/SwiftUICore/View/presentationDestination(for:destination:)`` to map data types to views
-3. Navigate with ``PresentationLink`` or the environment ``PresentationRouter``
+2. Use `presentationDestination(for:destination:)` to map data types to views
+3. Trigger navigation with ``PresentationLink`` or the environment ``PresentationRouter``
+4. Optionally set `presentationAdaptation(_:)` on the destination to choose the modal host
 
 ```swift
 @State private var path = PresentationPath()
@@ -27,15 +28,13 @@ PresentationStack(path: $path) {
         }
         
         // Explicit stack navigation
-        NavigationLink(value: user) {
-            Text("Navigate →")
+        PresentationLink(value: user, method: .stack) {
+            Text("Navigate")
         }
     }
     .presentationDestination(for: User.self) { user in
         UserProfile(user: user)
-            // All native SwiftUI modifiers work
-            .presentationDetents([.medium, .large])
-            .interactiveDismissDisabled()
+            .presentationAdaptation(.fullScreenCover)
     }
 }
 ```
@@ -43,9 +42,9 @@ PresentationStack(path: $path) {
 ### Benefits
 
 * **Unified state**: One path manages both stack pushes and sheet presentations
-* **Native integration**: Full compatibility with SwiftUI navigation and presentation modifiers
-* **Flexible presentation**: Switch between stack and sheet with one parameter
-* **Default sheet behavior**: Simple API with sensible defaults
+* **Destination reuse**: Register a destination once and reuse it for different presentation styles
+* **Modal adaptation**: Keep `PresentationLink(value:)` unchanged and choose the host from the destination
+* **Default sheet behavior**: Present values with a single link by default
 * **Nested flows**: Sheets automatically get isolated navigation contexts
 * **Testable navigation**: Programmatic control through value-based APIs
 * **Namespace isolation**: Each navigation context maintains independent state
@@ -73,7 +72,9 @@ with modal presentations, especially if you want programmatic control over
 navigation state.
 
 For simple, static navigation hierarchies, SwiftUI's built-in `NavigationStack`
-and `NavigationLink` are sufficient.## Topics
+and `NavigationLink` are sufficient.
+
+## Topics
 
 ### Essentials
 - ``PresentationStack``
@@ -81,15 +82,15 @@ and `NavigationLink` are sufficient.## Topics
 - ``PresentationPath``
 - ``PresentationRouter``
 
-### Destinations
-- ``SwiftUIPresentation/SwiftUICore/View/presentationDestination(for:destination:)``
-
 ### Namespaces
 - ``PresentationStackNamespace``
 
 ### Guides
 - <doc:GettingStarted>
+- <doc:ModalAdaptation>
+- <doc:ProgrammaticNavigation>
 - <doc:Concepts>
 
 ### Diagnostics
 - ``PresentationPath/debugDescription``
+- ``PresentationRouter/isPresented``

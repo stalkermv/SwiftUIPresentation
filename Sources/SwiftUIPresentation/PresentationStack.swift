@@ -20,7 +20,7 @@ import SwiftUIHelpers
 /// ```swift
 /// PresentationStack {
 ///     List(items) { item in
-///         PresentationLink(value: item, presentationType: .stack) {
+///         PresentationLink(value: item, method: .stack) {
 ///             Text(item.title)
 ///         }
 ///     }
@@ -101,25 +101,63 @@ struct PresentationSheetBuildersModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.backgroundPreferenceValue(PresentationDestinationSheetPreferenceKey.self) { value in
             let root = value.builders(path.stack[namespace]?.item?.value)
-            if #available(iOS 18.0, *) {
-                Group(subviews: root) { subviews in
-                    let presentationAdaptation = subviews.first?.containerValues.presentationAdaptation
-                    let adaptation = unsafeBitCast(presentationAdaptation, to: PresentationAdaptation.self)
 
-                    Color.clear
-                        .fullScreenCover(isPresented: isPresentedBinding(adaptation: adaptation) { $0 == .fullScreenCover }) { sheetContent(value: value) }
-                        .sheet(isPresented: isPresentedBinding(adaptation: adaptation) { $0 == .sheet || $0 == .automatic }) { sheetContent(value: value) }
-                        .popover(isPresented: isPresentedBinding(adaptation: adaptation) { $0 == .popover }) { sheetContent(value: value) }
-                }
+            if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *) {
+                adaptivePresentationHost(root: root, value: value)
             } else {
-                // Fallback on earlier versions
+                presentationHost(value: value, style: .sheet)
             }
         }
     }
 
-    private func isPresentedBinding(adaptation: PresentationAdaptation, kindMatches: @escaping (PresentationAdaptation.Kind) -> Bool) -> Binding<Bool> {
+    @available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *)
+    @ViewBuilder
+    private func adaptivePresentationHost(
+        root: AnyView,
+        value: PresentationDestinationSheetPreferenceKey.Value
+    ) -> some View {
+        Group(subviews: root) { subviews in
+            let adaptation = subviews.first
+                .map { DecodedPresentationAdaptation($0.containerValues.presentationAdaptation) }
+                ?? .automatic
+
+            presentationHost(value: value, style: PresentationModalStyle(adaptation: adaptation))
+        }
+    }
+
+    @ViewBuilder
+    private func presentationHost(
+        value: PresentationDestinationSheetPreferenceKey.Value,
+        style: PresentationModalStyle
+    ) -> some View {
+        #if os(iOS)
+        Color.clear
+            .fullScreenCover(isPresented: isPresentedBinding(for: .fullScreenCover, activeStyle: style)) {
+                sheetContent(value: value)
+            }
+            .sheet(isPresented: isPresentedBinding(for: .sheet, activeStyle: style)) {
+                sheetContent(value: value)
+            }
+            .popover(isPresented: isPresentedBinding(for: .popover, activeStyle: style)) {
+                sheetContent(value: value)
+            }
+        #else
+        Color.clear
+            .sheet(isPresented: isPresentedBinding(for: .sheet, activeStyle: style)) {
+                sheetContent(value: value)
+            }
+            .popover(isPresented: isPresentedBinding(for: .popover, activeStyle: style)) {
+                sheetContent(value: value)
+            }
+        #endif
+    }
+
+    private func isPresentedBinding(
+        for style: PresentationModalStyle,
+        activeStyle: PresentationModalStyle
+    ) -> Binding<Bool> {
         Binding(
-            get: { kindMatches(adaptation.kind) && path.stack[namespace]?.item != nil },
+            get: { activeStyle == style && path.stack[namespace]?.item != nil },
             set: { newValue in
                 guard !newValue else { return }
                 var pathCopy = path
@@ -137,26 +175,29 @@ struct PresentationSheetBuildersModifier: ViewModifier {
     }
 }
 
-struct PresentationAdaptationExtractor<Content: View, Subview: View>: View {
-    var root: Content
-    @ViewBuilder var content: (SwiftUI.PresentationAdaptation) -> Subview
-    
-    var body: some View {
-        if #available(iOS 18.0, *) {
-            ForEach(subviews: root) { subview in
-                let adaptation = subview.containerValues.presentationAdaptation
-                let _ = print("Adaptation: \(adaptation)")
-                content(adaptation)
-            }
-//            content(.automatic)
-        } else {
-            content(.automatic)
+private enum PresentationModalStyle: Equatable {
+    case sheet
+    case popover
+    case fullScreenCover
+
+    @available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *)
+    init(adaptation: DecodedPresentationAdaptation) {
+        switch adaptation.kind {
+        case .popover:
+            self = .popover
+        case .fullScreenCover:
+            #if os(iOS)
+            self = .fullScreenCover
+            #else
+            self = .sheet
+            #endif
+        case .automatic, .none, .sheet:
+            self = .sheet
         }
     }
 }
-//
-struct PresentationAdaptation: Equatable {
-    
+
+private struct DecodedPresentationAdaptation: Equatable {
     enum Kind: String {
         case automatic
         case none
@@ -164,49 +205,51 @@ struct PresentationAdaptation: Equatable {
         case sheet
         case fullScreenCover
     }
-    
-    var kind: Kind
+
+    let kind: Kind
+
+    static let automatic = DecodedPresentationAdaptation(kind: .automatic)
+
+    init(kind: Kind) {
+        self.kind = kind
+    }
+
+    @available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *)
+    init(_ adaptation: SwiftUI.PresentationAdaptation) {
+        self = unsafeBitCast(adaptation, to: DecodedPresentationAdaptation.self)
+    }
 }
 
-@available(iOS 18.0, *)
+@available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *)
 extension ContainerValues {
     @Entry var presentationAdaptation: SwiftUI.PresentationAdaptation = .automatic
 }
 
 extension View {
-    nonisolated public func presentationAdaptation(_ adaptation: SwiftUI.PresentationAdaptation) -> some View {
+    /// Sets the preferred modal presentation host for destinations shown by
+    /// ``PresentationLink`` or ``PresentationRouter/present(value:)``.
+    ///
+    /// Use this modifier inside a destination registered with
+    /// `presentationDestination(for:destination:)` when one destination
+    /// type should stay the same but the host should switch between standard
+    /// sheets, popovers, or a full-screen cover.
+    ///
+    /// On runtimes earlier than iOS 18, SwiftUIPresentation falls back to a
+    /// standard sheet.
+    public func presentationAdaptation(_ adaptation: SwiftUI.PresentationAdaptation) -> some View {
         modifier(PresentationAdaptationModifier(adaptation: adaptation))
     }
 }
 
-struct PresentationAdaptationModifier: ViewModifier {
+private struct PresentationAdaptationModifier: ViewModifier {
     let adaptation: SwiftUI.PresentationAdaptation
-    
+
+    @ViewBuilder
     func body(content: Content) -> some View {
-        if #available(iOS 18.0, *) {
-            content
-                .preference(key: PresentationAdaptationPreferenceKey.self, value: adaptation)
-                .containerValue(\.presentationAdaptation, adaptation)
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *) {
+            content.containerValue(\.presentationAdaptation, adaptation)
         } else {
-            // Fallback on earlier versions
-        }
-    }
-}
-
-struct PresentationAdaptationPreferenceKey: PreferenceKey {
-    static let defaultValue: SwiftUI.PresentationAdaptation = .automatic
-    
-    static func reduce(value: inout Value, nextValue: () -> Value) {
-        value = nextValue()
-    }
-}
-
-func printRecursively(_ any: Any, indent: String = "") {
-    let mirror = Mirror(reflecting: any)
-    print("\(indent)\(mirror.subjectType): \(any)")
-    for child in mirror.children {
-        if let value = child.value as? Any {
-            printRecursively(value, indent: indent + "  ")
+            content
         }
     }
 }

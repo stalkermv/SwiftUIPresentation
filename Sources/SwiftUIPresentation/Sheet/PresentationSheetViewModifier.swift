@@ -31,6 +31,11 @@ where D: Hashable, C: View {
 }
 
 extension View {
+    /// Embeds the current destination in a nested ``PresentationStack`` when it
+    /// appears inside a presented sheet.
+    ///
+    /// Use this modifier on a destination view when that sheet should support
+    /// its own stack navigation without leaking state into the parent stack.
     public func embedInPresentation() -> some View {
         self.modifier(PresentationContainerViewModifier())
     }

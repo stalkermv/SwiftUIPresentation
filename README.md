@@ -1,241 +1,155 @@
 # SwiftUIPresentation
 
-A SwiftUI library that seamlessly combines stack navigation and modal sheets in a unified, testable API.
-
-[![Swift 6.0+](https://img.shields.io/badge/Swift-6.0+-orange.svg)](https://swift.org)
-[![iOS 17.0+](https://img.shields.io/badge/iOS-17.0+-blue.svg)](https://developer.apple.com/ios/)
-[![macOS 14.0+](https://img.shields.io/badge/macOS-14.0+-blue.svg)](https://developer.apple.com/macos/)
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Tests](https://github.com/stalkermv/SwiftUIPresentation/actions/workflows/tests.yml/badge.svg)](https://github.com/stalkermv/SwiftUIPresentation/actions/workflows/tests.yml)
+[![Swift 6.1+](https://img.shields.io/badge/Swift-6.1+-orange.svg)](https://swift.org)
+[![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-lightgrey.svg)](https://developer.apple.com/ios/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Overview
+Unified SwiftUI navigation for iOS with stack and sheet flows backed by a single testable path.
 
-SwiftUIPresentation simplifies complex navigation by letting you describe *what* to show (data → view mappings) separately from *how* to show it (push vs sheet). A single `PresentationPath` tracks navigation state across multiple contexts, making your navigation logic easier to test and maintain.
+- Register each destination type once with `presentationDestination(for:)`
+- Present the same destination as a sheet, full-screen cover, popover, or stack push
+- Navigate programmatically through `PresentationPath` or the environment `PresentationRouter`
+- Keep nested sheet flows isolated with their own presentation namespace
 
-## Features
+## Installation
 
-- 🚀 **Unified Navigation**: One API for both stack pushes and sheet presentations
-- 🎯 **Type-Safe**: Map data types to destination views with compile-time safety  
-- 🔄 **Flexible Presentation**: Switch between stack and sheet with a single parameter
-- 🧪 **Testable**: Programmatic control through value-based APIs
-- 🏗️ **Isolated Contexts**: Sheets automatically get separate navigation namespaces
-- 📱 **Modern SwiftUI**: Built for iOS 17+ and macOS 14+ with Swift 6 support
+Add `SwiftUIPresentation` to your `Package.swift`:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/stalkermv/SwiftUIPresentation.git", from: "1.0.0")
+],
+targets: [
+    .target(
+        name: "YourApp",
+        dependencies: [
+            .product(name: "SwiftUIPresentation", package: "SwiftUIPresentation")
+        ]
+    )
+]
+```
 
 ## Quick Start
 
 ```swift
+import SwiftUI
 import SwiftUIPresentation
+
+struct User: Identifiable, Hashable {
+    let id: UUID
+    let name: String
+}
 
 struct ContentView: View {
     @State private var path = PresentationPath()
-    
+    let users: [User]
+
     var body: some View {
         PresentationStack(path: $path) {
             List(users) { user in
-                // Push to stack
-                PresentationLink(value: user, presentationType: .stack) {
+                PresentationLink(value: user) {
                     Text(user.name)
                 }
             }
             .presentationDestination(for: User.self) { user in
-                UserDetailView(user: user)
+                UserDetailsView(user: user)
             }
         }
     }
 }
 ```
 
-## Key Components
+## Modal Adaptation
 
-### PresentationStack
-The main container that manages navigation state and provides environment access.
-
-### PresentationLink  
-A button-like view that triggers navigation. Choose between `.stack` (push) or `.sheet` (modal) presentation.
-
-### PresentationPath
-A value type that tracks navigation state across namespaces. Supports programmatic navigation.
-
-### PresentationRouter
-Environment-injected router for navigation from anywhere in your view hierarchy.
-
-## Usage Examples
-
-### Basic Navigation
+Keep one destination registration and choose the modal host in the destination itself:
 
 ```swift
-// Sheet presentation (default behavior)
-PresentationLink(value: user) {
-    Text("View Profile") // Will show as sheet
-}
-
-// Explicit sheet presentation  
-PresentationLink(value: user, presentationType: .sheet) {
-    Text("Quick Edit")
-}
-
-// Stack navigation (explicit)
-PresentationLink(value: user, presentationType: .stack) {
-    Text("Navigate to Profile")
-}
-
-// You can also use native NavigationLink for stack navigation
-NavigationLink(value: user) {
-    Text("Native Stack Navigation")
+.presentationDestination(for: User.self) { user in
+    UserDetailsView(user: user)
+        .presentationAdaptation(.fullScreenCover)
+        .presentationDetents([.large])
 }
 ```
 
-### Native SwiftUI Integration
-
-SwiftUIPresentation seamlessly integrates with native SwiftUI modifiers:
+For push navigation, use the same destination with a different trigger:
 
 ```swift
-PresentationLink(value: settings) {
-    Text("Settings")
-        .presentationDestination(for: Settings.self) { settings in
-            SettingsView(settings: settings)
-                // All native presentation modifiers work
-                .presentationCompactAdaptation(.fullScreenCover)
-                .presentationDetents([.medium, .large])
-                .presentationBackground(.regularMaterial)
-                .presentationBackgroundInteraction(.enabled)
-                .interactiveDismissDisabled()
-                .presentationCornerRadius(20)
-        }
-}
-
-
-// Navigation modifiers also supported
-NavigationLink(value: user) {
-    Text("User Detail")
-        .presentationDestination(for: User.self) { user in
-            UserDetailView(user: user)
-                .navigationTransition(.zoom(sourceID: user.id, in: namespace))
-                .toolbarRole(.editor)
-        }
+PresentationLink(value: user, method: .stack) {
+    Text("Open details")
 }
 ```
 
-### Programmatic Navigation
+`presentationAdaptation(_:)` is honored on iOS 18 and later. Earlier runtimes
+fall back to a standard sheet host.
+
+## Programmatic Navigation
 
 ```swift
-struct UserDetailView: View {
-    @Environment(\.presentation) private var router
+struct UserDetailsView: View {
+    @Environment(\.presentation) private var presentation
     let user: User
-    
+
     var body: some View {
         VStack {
             Text(user.name)
-            
-            Button("Show Settings") {
-                router?.present(value: SettingsData())
+
+            Button("Show settings") {
+                presentation?.present(value: SettingsRoute())
             }
-            
-            Button("Go Back") {
-                router?.pop()
+
+            Button("Go back") {
+                presentation?.pop()
             }
         }
     }
 }
 ```
 
-### Direct Path Manipulation
+You can also mutate the path directly:
 
 ```swift
-@State private var path = PresentationPath()
-
-// Navigate programmatically
-path.append(User(id: 1))
-path.present(SettingsData(), over: .root)
-
-// Go back
-path.removeLast() // Removes last item or dismisses sheet
-
-// Namespace-specific navigation
-path.removeLast(from: .child(someKey))
+path.append(user)
+path.present(SettingsRoute(), over: .root)
+path.removeLast()
 ```
-
-### Multiple Destination Types
-
-```swift
-PresentationStack(path: $path) {
-    // Your content
-}
-.presentationDestination(for: User.self) { user in
-    UserDetailView(user: user)
-}
-.presentationDestination(for: Document.self) { document in
-    DocumentViewer(document: document)
-}
-.presentationDestination(for: Settings.self) { settings in
-    SettingsView(settings: settings)
-}
-```
-
-## Installation
-
-### Swift Package Manager
-
-Add this package to your project through Xcode:
-
-1. File → Add Package Dependencies
-2. Enter: `https://github.com/stalkermv/SwiftUIPresentation`
-3. Select version and add to your target
-
-Or add to your `Package.swift`:
-
-```swift
-dependencies: [
-    .package(url: "https://github.com/stalkermv/SwiftUIPresentation", from: "1.0.0")
-]
-```
-
-## Requirements
-
-- iOS 17.0+ / macOS 14.0+
-- Swift 6.0+
-- Xcode 16.0+
 
 ## Documentation
 
-Comprehensive documentation is available in the package. Use Xcode's built-in documentation viewer or build with DocC:
+DocC documentation lives in the package and can be browsed in Xcode or built locally:
 
 ```bash
-swift package generate-documentation
+swift package --allow-writing-to-directory ./docs \
+  generate-documentation --target SwiftUIPresentation \
+  --output-path ./docs \
+  --transform-for-static-hosting \
+  --hosting-base-path SwiftUIPresentation
 ```
 
-## Testing
+## Development
 
-Run the test suite:
+Run the package tests:
 
 ```bash
 swift test
 ```
 
-The library includes comprehensive unit tests covering:
-- Navigation state management
-- Namespace isolation
-- Router functionality  
-- Edge cases and error conditions
+`SwiftUIPresentation` is documented for iOS 17 and later. A macOS host build is still kept healthy so package tests and DocC generation remain stable in CI.
 
-## Contributing
+## Release
 
-Contributions are welcome! Please feel free to submit issues and pull requests.
+Release tags follow plain semver without a `v` prefix, for example `1.0.0`.
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
+`SwiftUIPresentation` is published as a source-only Swift Package. This
+repository doesn't ship XCFramework or other binary artifacts.
+
+The repository is being prepared for:
+
+- `swift build` and `swift test` validation
+- iOS compile checks
+- DocC validation and GitHub Pages deployment
+- source release automation on semver tags
 
 ## License
 
-SwiftUIPresentation is available under the MIT license. See [LICENSE](LICENSE) for details.
-
-## Authors
-
-Created by [Valeriy Malishevskyi](https://github.com/stalkermv)
-
----
-
-*Built with ❤️ for the SwiftUI community*
+`SwiftUIPresentation` is available under the MIT license. See [LICENSE](LICENSE).

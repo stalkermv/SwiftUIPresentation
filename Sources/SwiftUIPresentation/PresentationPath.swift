@@ -101,6 +101,7 @@ public struct PresentationPath: Equatable, Sendable {
         }
     }
     
+    /// Returns whether the namespace currently presents a modal item.
     public func isPresented(in namespace: PresentationStackNamespace) -> Bool {
         if let container = stack[namespace] {
             return container.item != nil
@@ -148,10 +149,13 @@ public struct PresentationPath: Equatable, Sendable {
         removeLast(from: .root)
     }
     
+    /// Creates an empty presentation path.
     public init() {}
 }
 
 extension PresentationPath: CustomDebugStringConvertible {
+    /// A textual snapshot of all namespaces, their navigation stacks, and
+    /// currently presented items.
     public var debugDescription: String {
         var descriptions: [String] = []
         for (namespace, container) in stack {

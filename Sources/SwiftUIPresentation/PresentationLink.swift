@@ -11,13 +11,13 @@ import SwiftUI
 ///
 /// People tap or click a presentation link to navigate to additional content.
 /// You control whether navigation happens by pushing onto the current stack
-/// or by presenting a modal sheet using the `presentationType` parameter.
+/// or by presenting a modal sheet using the `method` parameter.
 /// By default, presentation links show content as sheets unless explicitly 
 /// configured otherwise.
 ///
 /// ### Navigate with values
 /// First, declare what view to show for each data type using
-/// ``SwiftUIPresentation/SwiftUICore/View/presentationDestination(for:destination:)``. Then create
+/// `presentationDestination(for:destination:)`. Then create
 /// links that present specific values:
 ///
 /// ```swift
@@ -29,7 +29,7 @@ import SwiftUI
 ///         }
 ///         
 ///         // Explicit stack navigation  
-///         PresentationLink(value: user, presentationType: .stack) {
+///         PresentationLink(value: user, method: .stack) {
 ///             Label("Details", systemImage: "arrow.right")
 ///         }
 ///         
@@ -40,10 +40,8 @@ import SwiftUI
 ///     }
 ///     .presentationDestination(for: User.self) { user in
 ///         UserDetail(user: user)
-///             // All native SwiftUI presentation modifiers work
+///             .presentationAdaptation(.fullScreenCover)
 ///             .presentationDetents([.medium, .large])
-///             .presentationCompactAdaptation(.fullScreenCover)
-///             .interactiveDismissDisabled()
 ///     }
 /// }
 /// ```
@@ -51,7 +49,7 @@ import SwiftUI
 /// ```swift
 /// PresentationStack {
 ///     List(users) { user in
-///         PresentationLink(value: user, presentationType: .stack) {
+///         PresentationLink(value: user, method: .stack) {
 ///             Label(user.name, systemImage: "person")
 ///         }
 ///     }
@@ -66,7 +64,7 @@ import SwiftUI
 /// navigation:
 ///
 /// ```swift
-/// PresentationLink(value: user, presentationType: .sheet) {
+/// PresentationLink(value: user, method: .sheet) {
 ///     Text("Quick Edit")
 /// }
 /// ```
@@ -86,21 +84,21 @@ public struct PresentationLink<Value: Hashable, Label: View>: View {
     @Environment(\.presentation) private var presentation
     
     private let value: Value
-    private let presentationType: PresentationType
+    private let method: PresentationType
     private let label: () -> Label
     
     /// Creates a link that presents the supplied value.
     /// - Parameters:
     ///   - value: A hashable value identifying the destination.
-    ///   - presentationType: How to surface the destination. Defaults to ``PresentationType/sheet``.
+    ///   - method: How to surface the destination. Defaults to ``PresentationType/sheet``.
     ///   - label: A view builder that creates the link’s visual representation.
     public init(
         value: Value,
-        method presentationType: PresentationType = .sheet,
+        method: PresentationType = .sheet,
         @ViewBuilder label: @escaping () -> Label
     ) {
         self.value = value
-        self.presentationType = presentationType
+        self.method = method
         self.label = label
     }
     
@@ -112,7 +110,7 @@ public struct PresentationLink<Value: Hashable, Label: View>: View {
     }
     
     private func present() {
-        if presentationType == .stack, let presentation {
+        if method == .stack, let presentation {
             presentation.push(value: value)
         } else if let presentation {
             presentation.present(value: value)

@@ -78,6 +78,8 @@ public struct PresentationRouter: @unchecked Sendable {
         }
     }
     
+    /// A Boolean value that indicates whether this router's namespace currently
+    /// presents a modal destination.
     public var isPresented: Bool {
         presentationPath.isPresented(in: namespace)
     }

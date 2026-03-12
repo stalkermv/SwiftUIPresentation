@@ -8,35 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial public release
-- `PresentationStack` - Main container for unified navigation
-- `PresentationLink` - UI component for triggering navigation
-- `PresentationPath` - Value type for managing navigation state
-- `PresentationRouter` - Environment-injected navigation controller
-- Support for both stack (push) and sheet (modal) presentation
-- Namespace isolation for nested navigation contexts
-- Comprehensive test suite with 20+ unit tests
-- Complete DocC documentation with guides and examples
+- Documentation rewrite for the public API and DocC guides
+- GitHub Actions workflows for tests, documentation, and releases
 
-### Technical Details
-- Swift 6.0+ support with full concurrency safety
-- iOS 17.0+ and macOS 14.0+ compatibility
-- Type-safe destination mapping
-- Programmatic navigation APIs
-- Backward-compatible API design
-
-## [1.0.0] - 2025-09-09
+## [1.0.0] - 2026-03-12
 
 ### Added
-- Initial release of SwiftUIPresentation
-- Full feature set as described above
+- Initial public release of SwiftUIPresentation
+- `PresentationStack` for unified stack and modal navigation
+- `PresentationLink` for value-driven push or modal presentation
+- `PresentationPath` for testable navigation state
+- `PresentationRouter` for environment-driven navigation
+- Destination-level modal adaptation with stable `PresentationLink(value:)` call sites
+- DocC guides for getting started, modal adaptation, concepts, and programmatic navigation
+- GitHub Actions workflows for Swift tests, DocC build checks, Pages deployment, and releases
 
 ### Dependencies
 - SwiftUIHelpers for internal utilities
 - Swift Testing framework for unit tests
 
 ### Documentation
-- Getting Started guide
-- Concepts documentation
-- Complete API reference
-- Usage examples and best practices
+- README aligned with the published public API
+- Apple-style DocC articles with examples and release-ready reference docs
