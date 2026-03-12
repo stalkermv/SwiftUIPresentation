@@ -77,6 +77,10 @@ public struct PresentationRouter: @unchecked Sendable {
             mutatePath { $0.dismiss(presenting: key.key) }
         }
     }
+    
+    public var isPresented: Bool {
+        presentationPath.isPresented(in: namespace)
+    }
 
     private func mutatePath(_ body: (inout PresentationPath) -> Void) {
         var path = presentationPath

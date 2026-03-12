@@ -100,6 +100,13 @@ public struct PresentationPath: Equatable, Sendable {
             return
         }
     }
+    
+    public func isPresented(in namespace: PresentationStackNamespace) -> Bool {
+        if let container = stack[namespace] {
+            return container.item != nil
+        }
+        return false
+    }
 
     /// Removes the most recent navigation change in the specified namespace.
     ///
