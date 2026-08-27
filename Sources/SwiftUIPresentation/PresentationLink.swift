@@ -81,7 +81,7 @@ public enum PresentationMethod: Hashable, Sendable {
 /// is present in the view hierarchy.
 public struct PresentationLink<Value: Hashable, Label: View>: View {
 
-    /// The pre-1.1 name for ``PresentationMethod``.
+    /// The legacy name for ``PresentationMethod``.
     @available(*, deprecated, renamed: "PresentationMethod")
     public typealias PresentationType = PresentationMethod
     
@@ -106,7 +106,7 @@ public struct PresentationLink<Value: Hashable, Label: View>: View {
         self.label = label()
     }
 
-    /// Creates a link using the pre-1.0 `presentationType` label.
+    /// Creates a link using the legacy `presentationType` label.
     ///
     /// Prefer ``init(value:method:label:)`` in new code.
     @available(*, deprecated, message: "Use init(value:method:label:) instead.")
