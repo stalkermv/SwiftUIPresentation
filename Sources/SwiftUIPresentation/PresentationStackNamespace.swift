@@ -10,7 +10,6 @@
 /// Each namespace maintains its own navigation stack and optional sheet item.
 /// When you show a sheet, it automatically gets its own child namespace so
 /// navigation inside the sheet doesn't interfere with navigation outside it.
-@frozen
 public enum PresentationStackNamespace: Hashable, Sendable, CustomStringConvertible {
     /// Primary/root namespace.
     case root

@@ -14,11 +14,11 @@ struct UserProfile: View {
     var body: some View {
         VStack {
             Button("Show settings") {
-                presentation?.present(value: SettingsRoute())
+                presentation?.present(SettingsRoute())
             }
 
             Button("Push details") {
-                presentation?.push(value: RelatedUserRoute())
+                presentation?.push(RelatedUserRoute())
             }
 
             Button("Go back") {

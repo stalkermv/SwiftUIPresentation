@@ -10,7 +10,6 @@ let package = Package(
         .library(name: "SwiftUIPresentation", targets: ["SwiftUIPresentation"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/stalkermv/SwiftHelpers.git", from: "1.0.0"),
         .package(url: "https://github.com/stalkermv/SwiftUIHelpers.git", from: "1.0.0"),
         // UI inspection & interaction testing (development only)
         .package(url: "https://github.com/nalexn/ViewInspector.git", from: "0.9.13"),
@@ -22,7 +21,6 @@ let package = Package(
             name: "SwiftUIPresentation",
             dependencies: [
                 .product(name: "SwiftUIHelpers", package: "SwiftUIHelpers"),
-                .product(name: "Development", package: "SwiftHelpers"),
             ],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),

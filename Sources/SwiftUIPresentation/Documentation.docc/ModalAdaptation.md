@@ -1,4 +1,4 @@
-# Modal Adaptation
+# Modal Host Selection
 
 Choose how a destination should be hosted without changing the trigger.
 
@@ -15,14 +15,14 @@ Choose how a destination should be hosted without changing the trigger.
 and decide later whether that destination should appear as a sheet, popover,
 or full-screen cover.
 
-## Set adaptation on the destination
+## Set the host on the destination
 
-Apply `presentationAdaptation(_:)` inside the destination builder:
+Apply `presentationHost(_:)` inside the destination builder:
 
 ```swift
 .presentationDestination(for: User.self) { user in
     UserProfile(user: user)
-        .presentationAdaptation(.fullScreenCover)
+        .presentationHost(.fullScreenCover)
 }
 ```
 
@@ -50,5 +50,7 @@ push and modal navigation.
 
 ## Runtime behavior
 
-Modal adaptation is honored on iOS 18 and later. Earlier runtimes fall back to
-a standard sheet host so the destination remains usable.
+Host selection is honored on iOS 18 and macOS 15 or later. On iOS 17 and macOS
+14, destinations use a standard sheet host so the flow remains usable. The
+deprecated `presentationAdaptation(_:)` method is only a compatibility wrapper
+for SwiftUI's compact-size-class adaptation; it is not a host selector.

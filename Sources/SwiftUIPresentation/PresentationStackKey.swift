@@ -11,19 +11,13 @@ import Foundation
 ///
 /// The identity is intentionally independent from the destination value. Two
 /// presentations may contain equal values while still representing different
-/// presentation instances.
-@frozen
+/// presentation instances. The key is opaque; instances are created by the
+/// presentation system rather than by app code.
 public struct PresentationStackKey: Hashable, Sendable, CustomStringConvertible {
-    /// The underlying identity value.
-    public let rawValue: UUID
+    private let rawValue: UUID
 
-    /// Creates a new presentation identity.
-    public init() {
+    init() {
         rawValue = UUID()
-    }
-
-    internal init(rawValue: UUID) {
-        self.rawValue = rawValue
     }
 
     public var description: String {

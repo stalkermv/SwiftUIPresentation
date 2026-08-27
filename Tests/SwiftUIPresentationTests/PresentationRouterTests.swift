@@ -2,36 +2,37 @@ import Testing
 import SwiftUI
 @testable import SwiftUIPresentation
 
+@MainActor
 struct PresentationRouterTests {
     @Test("Router push delegates to path append")
     func testPushDelegates() {
-        final class Box: @unchecked Sendable { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
+        final class Box { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
         let box = Box(PresentationPath())
         let binding = Binding(get: { box.value }, set: { box.value = $0 })
         let router = PresentationRouter(namespace: .root, presentationPath: binding)
-        router.push(value: "A")
+        router.push("A")
         #expect(box.value.stack[.root]?.path.count == 1, "Push should append an element to root path")
     }
     
     @Test("Present adds item to specified namespace")
     func testPresentAddsItemToSpecifiedNamespace() {
-        final class Box: @unchecked Sendable { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
+        final class Box { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
         let box = Box(PresentationPath())
         let binding = Binding(get: { box.value }, set: { box.value = $0 })
         let router = PresentationRouter(namespace: .root, presentationPath: binding)
-        router.present(value: "Modal")
+        router.present("Modal")
         #expect(box.value.stack[.root]?.item != nil, "Present should set item in root namespace")
     }
     
     @Test("Pop removes last element from router's namespace")
     func testPopRemovesLastElement() {
-        final class Box: @unchecked Sendable { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
+        final class Box { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
         let box = Box(PresentationPath())
         let binding = Binding(get: { box.value }, set: { box.value = $0 })
         let router = PresentationRouter(namespace: .root, presentationPath: binding)
         
-        router.push(value: "A")
-        router.push(value: "B")
+        router.push("A")
+        router.push("B")
         #expect(box.value.stack[.root]?.path.count == 2, "Router should push two elements")
         
         router.pop()
@@ -40,12 +41,12 @@ struct PresentationRouterTests {
     
     @Test("Pop dismisses sheet when stack empty")
     func testPopDismissesSheetWhenStackEmpty() {
-        final class Box: @unchecked Sendable { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
+        final class Box { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
         let box = Box(PresentationPath())
         let binding = Binding(get: { box.value }, set: { box.value = $0 })
         let router = PresentationRouter(namespace: .root, presentationPath: binding)
         
-        router.present(value: "Modal")
+        router.present("Modal")
         #expect(box.value.stack[.root]?.item != nil, "Modal should be presented")
         
         router.pop()
@@ -54,12 +55,12 @@ struct PresentationRouterTests {
     
     @Test("Dismiss removes presented sheet")
     func testDismissRemovesPresentedSheet() {
-        final class Box: @unchecked Sendable { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
+        final class Box { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
         let box = Box(PresentationPath())
         let binding = Binding(get: { box.value }, set: { box.value = $0 })
         let router = PresentationRouter(namespace: .root, presentationPath: binding)
         
-        router.present(value: "Modal")
+        router.present("Modal")
         #expect(box.value.stack[.root]?.item != nil, "Modal should be presented")
         
         router.dismiss()
@@ -68,13 +69,13 @@ struct PresentationRouterTests {
     
     @Test("Dismiss does not affect navigation stack")
     func testDismissDoesNotAffectStack() {
-        final class Box: @unchecked Sendable { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
+        final class Box { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
         let box = Box(PresentationPath())
         let binding = Binding(get: { box.value }, set: { box.value = $0 })
         let router = PresentationRouter(namespace: .root, presentationPath: binding)
         
-        router.push(value: "A")
-        router.present(value: "Modal")
+        router.push("A")
+        router.present("Modal")
         #expect(box.value.stack[.root]?.path.count == 1, "Stack should have one element")
         #expect(box.value.stack[.root]?.item != nil, "Modal should be presented")
         
@@ -85,7 +86,7 @@ struct PresentationRouterTests {
 
     @Test("Dismiss from child namespace closes sheet hosted by root")
     func testDismissFromChildNamespaceClosesSheet() throws {
-        final class Box: @unchecked Sendable { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
+        final class Box { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
         let box = Box(PresentationPath())
         box.value.present("Sheet", over: .root)
         #expect(box.value.stack[.root]?.item != nil, "Root should have presented sheet")

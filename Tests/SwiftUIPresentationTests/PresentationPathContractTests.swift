@@ -80,7 +80,7 @@ struct PresentationPathContractTests {
         path.append("A")
         #expect(path.stack[.root]?.path.count == 1, "Path should contain one element before removeLast")
         path.removeLast()
-        #expect(path.stack[.root]?.path.count == 0, "removeLast should remove last element when path not empty")
+        #expect(path.stack[.root] == nil, "Empty namespaces should be removed after removeLast")
     }
     
     @Test("RemoveLast backwards compatibility - defaults to root namespace")
@@ -96,7 +96,7 @@ struct PresentationPathContractTests {
         // removeLast() without parameters should only affect root
         path.removeLast()
         
-        #expect(path.stack[.root]?.path.count == 0, "Root namespace should be affected by removeLast()")
+        #expect(path.stack[.root] == nil, "Root namespace should be removed after removeLast()")
         #expect(path.stack[childNamespace]?.path.count == 1, "Child namespace should be unaffected by removeLast()")
     }
 
@@ -148,17 +148,17 @@ struct PresentationPathContractTests {
         path.removeLast(from: childNamespace)
         
         #expect(path.stack[.root]?.path.count == 1, "Root namespace should be unaffected")
-        #expect(path.stack[childNamespace]?.path.count == 0, "Child namespace should be empty")
+        #expect(path.stack[childNamespace] == nil, "Empty child namespaces should be removed")
     }
 
-    @Test("DismissSheet presenting clears item in namespace that has that value")
-    func testDismissSheetPresentingClearsRootItem() {
+    @Test("Dismiss by namespace clears the presented item")
+    func testDismissInRootClearsRootItem() {
         var path = PresentationPath()
         path.present("Modal", over: .root)
-        #expect(path.stack[.root]?.item != nil, "Item should be set before dismissSheet")
+        #expect(path.stack[.root]?.item != nil, "Item should be set before dismiss")
 
-        path.dismiss(presenting: AnyHashable("Modal"))
-        #expect(path.stack[.root]?.item == nil, "dismissSheet(presenting:) should clear root item")
+        path.dismiss(in: .root)
+        #expect(path.stack[.root]?.item == nil, "dismiss(in:) should clear root item")
     }
 
     @Test("RemoveLast from child with empty stack and nil item dismisses parent sheet")
@@ -213,5 +213,33 @@ struct PresentationPathContractTests {
         #expect(path.isEmpty)
         #expect(path.stack[.child(rootKey)] == nil)
         #expect(path.stack[.child(childKey)] == nil)
+    }
+
+    @Test("Child dismissal closes its own sheet before its parent")
+    func testChildDismissalPrefersLocalSheet() throws {
+        var path = PresentationPath()
+        path.present("Root")
+        let rootKey = try #require(path.stack[.root]?.item?.id)
+        let childNamespace = PresentationStackNamespace.child(rootKey)
+        path.present("Nested", over: childNamespace)
+
+        path.dismiss(in: childNamespace)
+
+        #expect(path.stack[.root]?.item?.value as? String == "Root")
+        #expect(path.stack[childNamespace] == nil)
+    }
+
+    @Test("Empty paths stay canonical after removing the last state")
+    func testEmptyPathCanonicalization() {
+        var poppedPath = PresentationPath()
+        poppedPath.append("A")
+        poppedPath.removeLast()
+
+        var dismissedPath = PresentationPath()
+        dismissedPath.present("Sheet")
+        dismissedPath.dismiss(in: .root)
+
+        #expect(poppedPath == PresentationPath())
+        #expect(dismissedPath == PresentationPath())
     }
 }

@@ -56,18 +56,19 @@ Use one destination registration and choose the modal host from the destination:
 ```swift
 .presentationDestination(for: User.self) { user in
     UserProfileView(user: user)
-        .presentationAdaptation(.fullScreenCover)
+        .presentationHost(.fullScreenCover)
         .presentationDetents([.large])
 }
 
 .presentationDestination(for: Document.self) { document in
     DocumentView(document: document)
-        .presentationAdaptation(.popover)
+        .presentationHost(.popover)
 }
 ```
 
-On runtimes earlier than iOS 18, SwiftUIPresentation falls back to a standard
-sheet host.
+On iOS 17 and macOS 14, SwiftUIPresentation falls back to a standard sheet
+host. The older `presentationAdaptation(_:)` compatibility method forwards to
+SwiftUI's compact-size-class adaptation and does not choose the host.
 
 ## Multiple data types
 
@@ -99,7 +100,7 @@ struct UserProfile: View {
             // View content
             
             Button("Show Settings") {
-                router?.present(value: SettingsData())
+                router?.present(SettingsData())
             }
             
             Button("Go Back") {
