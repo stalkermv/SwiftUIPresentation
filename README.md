@@ -2,10 +2,10 @@
 
 [![Tests](https://github.com/stalkermv/SwiftUIPresentation/actions/workflows/tests.yml/badge.svg)](https://github.com/stalkermv/SwiftUIPresentation/actions/workflows/tests.yml)
 [![Swift 6.1+](https://img.shields.io/badge/Swift-6.1+-orange.svg)](https://swift.org)
-[![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-lightgrey.svg)](https://developer.apple.com/ios/)
+[![Platform](https://img.shields.io/badge/platform-iOS%2017%2B%20%7C%20macOS%2014%2B-lightgrey.svg)](https://developer.apple.com/swift/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Unified SwiftUI navigation for iOS with stack and sheet flows backed by a single testable path.
+Unified SwiftUI navigation for iOS and macOS with stack and modal flows backed by a single testable path.
 
 - Register each destination type once with `presentationDestination(for:)`
 - Present the same destination as a sheet, full-screen cover, popover, or stack push
@@ -60,17 +60,22 @@ struct ContentView: View {
 }
 ```
 
-## Modal Adaptation
+## Modal Host Selection
 
 Keep one destination registration and choose the modal host in the destination itself:
 
 ```swift
 .presentationDestination(for: User.self) { user in
     UserDetailsView(user: user)
-        .presentationAdaptation(.fullScreenCover)
+        .presentationHost(.fullScreenCover)
         .presentationDetents([.large])
 }
 ```
+
+`presentationHost(_:)` selects the modal host for a destination. On iOS 18 and
+macOS 15 or later, `.sheet`, `.popover`, and (on iOS) `.fullScreenCover` are
+available. On iOS 17 and macOS 14, modal destinations use a standard sheet so
+the same flow remains usable.
 
 For push navigation, use the same destination with a different trigger:
 
@@ -80,8 +85,9 @@ PresentationLink(value: user, method: .stack) {
 }
 ```
 
-`presentationAdaptation(_:)` is honored on iOS 18 and later. Earlier runtimes
-fall back to a standard sheet host.
+The deprecated `presentationAdaptation(_:)` method is retained only as a
+compatibility wrapper for SwiftUI's compact-size-class adaptation. It does not
+select the modal host; use `presentationHost(_:)` for that.
 
 ## Programmatic Navigation
 
@@ -95,7 +101,7 @@ struct UserDetailsView: View {
             Text(user.name)
 
             Button("Show settings") {
-                presentation?.present(value: SettingsRoute())
+                presentation?.present(SettingsRoute())
             }
 
             Button("Go back") {
@@ -134,7 +140,12 @@ Run the package tests:
 swift test
 ```
 
-`SwiftUIPresentation` is documented for iOS 17 and later. A macOS host build is still kept healthy so package tests and DocC generation remain stable in CI.
+`SwiftUIPresentation` supports iOS 17+ and macOS 14+. CI compiles both Apple
+targets in addition to running the host tests and DocC generation. The package
+manifest also retains its existing tvOS 17+ and watchOS 10+ declarations.
+
+The public-state and compatibility guarantees are summarized in
+[API_CONTRACT.md](API_CONTRACT.md).
 
 ## Release
 
@@ -146,7 +157,7 @@ repository doesn't ship XCFramework or other binary artifacts.
 The repository is being prepared for:
 
 - `swift build` and `swift test` validation
-- iOS compile checks
+- iOS and macOS compile checks
 - DocC validation and GitHub Pages deployment
 - source release automation on semver tags
 

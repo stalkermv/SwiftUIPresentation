@@ -44,7 +44,7 @@ jobs:
           body: |
             # SwiftUIPresentation ${{ github.ref_name }}
 
-            Unified SwiftUI navigation for iOS with stack and sheet flows backed by a single testable path.
+            Unified SwiftUI navigation for iOS and macOS with stack and modal flows backed by a single testable path.
 
             ## Installation
 
@@ -63,4 +63,4 @@ jobs:
 
             - Source-first MIT-licensed Swift Package
             - One destination registration reused for push and modal presentation
-            - Destination-level modal adaptation while keeping `PresentationLink(value:)` stable
+            - Destination-level modal host selection while keeping `PresentationLink(value:)` stable

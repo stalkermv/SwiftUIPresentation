@@ -31,11 +31,27 @@ Found a bug or have a feature request? [Create an issue](https://github.com/stal
 # Build the package
 swift build
 
+# Build with complete strict-concurrency checking
+swift build -Xswiftc -strict-concurrency=complete
+
 # Run all tests
 swift test
 
 # Generate documentation
-swift package generate-documentation
+DOCS_DIR="$(mktemp -d)"
+swift package --allow-writing-to-directory "$DOCS_DIR" \
+  generate-documentation --target SwiftUIPresentation \
+  --output-path "$DOCS_DIR" \
+  --transform-for-static-hosting \
+  --hosting-base-path SwiftUIPresentation
+
+# Compile both supported app targets
+xcodebuild -workspace .swiftpm/xcode/package.xcworkspace \
+  -scheme SwiftUIPresentation \
+  -destination "generic/platform=iOS Simulator" build
+xcodebuild -workspace .swiftpm/xcode/package.xcworkspace \
+  -scheme SwiftUIPresentation \
+  -destination "generic/platform=macOS" build
 ```
 
 ### Code Guidelines
