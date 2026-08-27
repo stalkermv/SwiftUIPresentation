@@ -84,14 +84,14 @@ struct PresentationRouterTests {
     }
 
     @Test("Dismiss from child namespace closes sheet hosted by root")
-    func testDismissFromChildNamespaceClosesSheet() {
+    func testDismissFromChildNamespaceClosesSheet() throws {
         final class Box: @unchecked Sendable { var value: PresentationPath; init(_ v: PresentationPath) { value = v } }
         let box = Box(PresentationPath())
         box.value.present("Sheet", over: .root)
         #expect(box.value.stack[.root]?.item != nil, "Root should have presented sheet")
 
         let binding = Binding(get: { box.value }, set: { box.value = $0 })
-        let childKey = PresentationStackKey(key: "Sheet")
+        let childKey = try #require(box.value.stack[.root]?.item?.id)
         let router = PresentationRouter(namespace: .child(childKey), presentationPath: binding)
         router.dismiss()
 

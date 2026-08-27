@@ -16,14 +16,14 @@ where D: Hashable, C: View {
     func body(content: Content) -> some View {
         content.transformPreference(PresentationDestinationSheetPreferenceKey.self) { value in
             let builders = value.builders
-            value.builders = { data in
-                if let data = data as? D {
+            value.builders = { item in
+                if let item, let data = item.value as? D {
                     return AnyView(
                         destination(data)
-                            .environment(\.presentationStackNamespace, .child(PresentationStackKey(key: data)))
+                            .environment(\.presentationStackNamespace, .child(item.id))
                     )
                 } else {
-                    return builders(data)
+                    return builders(item)
                 }
             }
         }

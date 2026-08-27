@@ -26,20 +26,21 @@ import SwiftUI
 /// ### Namespaces
 /// Sheets create child namespaces so navigation inside a modal doesn’t leak
 /// into the root stack.
-public struct PresentationPath: Equatable, Sendable {
+public struct PresentationPath: Equatable {
 
     // MARK: - Internal Types
 
-    internal struct PresentationItem: Identifiable, Hashable, @unchecked Sendable {
+    internal struct PresentationItem: Identifiable, Hashable {
+        let id: PresentationStackKey
         let value: AnyHashable
-        var id: AnyHashable { value }
 
         init<T: Hashable>(_ value: T) {
+            self.id = PresentationStackKey()
             self.value = AnyHashable(value)
         }
     }
 
-    internal struct PresentationContainer: Equatable, @unchecked Sendable {
+    internal struct PresentationContainer: Equatable {
         var path: NavigationPath
         var item: PresentationItem?
 
@@ -52,12 +53,21 @@ public struct PresentationPath: Equatable, Sendable {
     // MARK: - Storage
 
     var stack: [PresentationStackNamespace: PresentationContainer] = [:]
-    
+
+    /// A Boolean value that indicates whether every presentation namespace is
+    /// empty.
+    public var isEmpty: Bool {
+        stack.values.allSatisfy { $0.path.isEmpty && $0.item == nil }
+    }
+
     /// Adds a value to the navigation stack for the specified namespace.
     ///
     /// The new value becomes the top item on the stack. If no stack exists
     /// for this namespace, this method creates one.
-    public mutating func append<T: Hashable>(_ element: T, namespace: PresentationStackNamespace = .root) {
+    public mutating func append<T: Hashable>(
+        _ element: T,
+        namespace: PresentationStackNamespace = .root
+    ) {
         var container = stack[namespace, default: PresentationContainer()]
         container.path.append(element)
         stack[namespace] = container
@@ -67,8 +77,14 @@ public struct PresentationPath: Equatable, Sendable {
     ///
     /// If a sheet is already showing for this namespace, this method replaces it
     /// with the new value.
-    public mutating func present<T: Hashable>(_ element: T, over namespace: PresentationStackNamespace) {
+    public mutating func present<T: Hashable>(
+        _ element: T,
+        over namespace: PresentationStackNamespace = .root
+    ) {
         var container = stack[namespace, default: PresentationContainer()]
+        if let previousItem = container.item {
+            removeNamespaceTree(for: previousItem.id)
+        }
         container.item = PresentationItem(element)
         stack[namespace] = container
     }
@@ -77,12 +93,23 @@ public struct PresentationPath: Equatable, Sendable {
     /// Also removes the child namespace for that item's value so the next presentation
     /// starts with a fresh navigation stack inside the sheet (avoids stale state).
     internal mutating func clearPresentedItem(in namespace: PresentationStackNamespace) {
-        var container = stack[namespace, default: PresentationContainer()]
-        let presentedValue = container.item?.value
+        guard var container = stack[namespace], let item = container.item else { return }
         container.item = nil
         stack[namespace] = container
-        if let value = presentedValue {
-            removeChildNamespace(forPresentedValue: value)
+        removeNamespaceTree(for: item.id)
+    }
+
+    /// Dismisses the presented item in a namespace.
+    ///
+    /// For a child namespace, this dismisses the sheet that owns that child
+    /// namespace. Dismissing also removes all nested presentation state below
+    /// the dismissed item.
+    public mutating func dismiss(in namespace: PresentationStackNamespace = .root) {
+        switch namespace {
+        case .root:
+            clearPresentedItem(in: .root)
+        case .child(let key):
+            dismiss(presenting: key)
         }
     }
 
@@ -92,21 +119,18 @@ public struct PresentationPath: Equatable, Sendable {
     /// container's item, and removes the child namespace so the next presentation
     /// starts with a fresh stack inside the sheet.
     public mutating func dismiss(presenting value: AnyHashable) {
-        for (ns, container) in stack where container.item?.value == value {
-            var updated = container
-            updated.item = nil
-            stack[ns] = updated
-            removeChildNamespace(forPresentedValue: value)
-            return
-        }
+        guard let match = stack.first(where: { $0.value.item?.value == value }) else { return }
+        clearPresentedItem(in: match.key)
     }
-    
+
+    internal mutating func dismiss(presenting key: PresentationStackKey) {
+        guard let match = stack.first(where: { $0.value.item?.id == key }) else { return }
+        clearPresentedItem(in: match.key)
+    }
+
     /// Returns whether the namespace currently presents a modal item.
     public func isPresented(in namespace: PresentationStackNamespace) -> Bool {
-        if let container = stack[namespace] {
-            return container.item != nil
-        }
-        return false
+        stack[namespace]?.item != nil
     }
 
     /// Removes the most recent navigation change in the specified namespace.
@@ -115,28 +139,30 @@ public struct PresentationPath: Equatable, Sendable {
     /// stack is empty but a sheet is showing, this method dismisses the sheet.
     /// If both the stack and sheet are empty, this method does nothing.
     public mutating func removeLast(from namespace: PresentationStackNamespace = .root) {
-        var container = stack[namespace, default: PresentationContainer()]
-        if !container.path.isEmpty {
-            container.path.removeLast()
-        } else if container.item != nil {
-            let presentedValue = container.item?.value
-            container.item = nil
-            if let value = presentedValue {
-                removeChildNamespace(forPresentedValue: value)
+        guard var container = stack[namespace] else {
+            if case .child(let key) = namespace {
+                dismiss(presenting: key)
             }
-        } else if case .child(let key) = namespace {
-            dismiss(presenting: key.key)
-            return
-        } else {
             return
         }
-        stack[namespace] = container
+
+        if !container.path.isEmpty {
+            container.path.removeLast()
+            stack[namespace] = container
+        } else if container.item != nil {
+            clearPresentedItem(in: namespace)
+        } else if case .child(let key) = namespace {
+            dismiss(presenting: key)
+        }
     }
 
     // MARK: - Private Helpers
 
-    private mutating func removeChildNamespace(forPresentedValue value: AnyHashable) {
-        stack.removeValue(forKey: .child(PresentationStackKey(key: value)))
+    private mutating func removeNamespaceTree(for key: PresentationStackKey) {
+        guard let child = stack.removeValue(forKey: .child(key)) else { return }
+        if let item = child.item {
+            removeNamespaceTree(for: item.id)
+        }
     }
     
     /// Removes the most recent navigation change in the root namespace.
@@ -157,12 +183,13 @@ extension PresentationPath: CustomDebugStringConvertible {
     /// A textual snapshot of all namespaces, their navigation stacks, and
     /// currently presented items.
     public var debugDescription: String {
-        var descriptions: [String] = []
-        for (namespace, container) in stack {
+        stack
+            .sorted { String(describing: $0.key) < String(describing: $1.key) }
+            .map { namespace, container in
             let pathDescription = container.path.codable.debugDescription
             let itemDescription = container.item.map { "\($0.value)" } ?? "nil"
-            descriptions.append("Namespace: \(namespace), Path: [\(pathDescription)], Item: \(itemDescription)")
-        }
-        return descriptions.joined(separator: "\n")
+            return "Namespace: \(namespace), Path: [\(pathDescription)], Item: \(itemDescription)"
+            }
+            .joined(separator: "\n")
     }
 }

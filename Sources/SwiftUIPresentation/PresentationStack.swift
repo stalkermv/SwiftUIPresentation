@@ -100,7 +100,7 @@ struct PresentationSheetBuildersModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content.backgroundPreferenceValue(PresentationDestinationSheetPreferenceKey.self) { value in
-            let root = value.builders(path.stack[namespace]?.item?.value)
+            let root = value.builders(path.stack[namespace]?.item)
 
             if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *) {
                 adaptivePresentationHost(root: root, value: value)
@@ -170,7 +170,7 @@ struct PresentationSheetBuildersModifier: ViewModifier {
     @ViewBuilder
     private func sheetContent(value: PresentationDestinationSheetPreferenceKey.Value) -> some View {
         if let item = path.stack[namespace]?.item {
-            value.builders(item.value)
+            value.builders(item)
         }
     }
 }

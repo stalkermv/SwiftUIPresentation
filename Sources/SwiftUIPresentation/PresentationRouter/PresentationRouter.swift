@@ -74,7 +74,7 @@ public struct PresentationRouter: @unchecked Sendable {
         case .root:
             mutatePath { $0.clearPresentedItem(in: .root) }
         case .child(let key):
-            mutatePath { $0.dismiss(presenting: key.key) }
+            mutatePath { $0.dismiss(presenting: key) }
         }
     }
     
