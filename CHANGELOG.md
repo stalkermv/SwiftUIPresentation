@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   removed; it always terminated at runtime and had no destination value
 - `PresentationPath` no longer claims `Sendable` because it stores SwiftUI
   navigation state and type-erased values
+- The supported platform contract is now explicit: iOS 17+ and macOS 14+;
+  tvOS and watchOS declarations were removed
 - The next tagged release should be `2.0.0`
 
 ## [1.0.0] - 2026-03-12

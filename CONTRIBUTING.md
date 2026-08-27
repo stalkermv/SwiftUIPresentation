@@ -23,7 +23,7 @@ Found a bug or have a feature request? [Create an issue](https://github.com/stal
 
 ### Requirements
 - macOS 14.0+
-- Xcode 16.0+
+- Xcode 16.3+
 - Swift 6.1+
 
 ### Building & Testing
@@ -45,12 +45,10 @@ swift package --allow-writing-to-directory "$DOCS_DIR" \
   --transform-for-static-hosting \
   --hosting-base-path SwiftUIPresentation
 
-# Compile both supported app targets
-xcodebuild -workspace .swiftpm/xcode/package.xcworkspace \
-  -scheme SwiftUIPresentation \
+# Compile both supported Apple targets from a clean package checkout
+xcodebuild -scheme SwiftUIPresentation \
   -destination "generic/platform=iOS Simulator" build
-xcodebuild -workspace .swiftpm/xcode/package.xcworkspace \
-  -scheme SwiftUIPresentation \
+xcodebuild -scheme SwiftUIPresentation \
   -destination "generic/platform=macOS" build
 ```
 

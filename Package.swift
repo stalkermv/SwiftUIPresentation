@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "SwiftUIPresentation",
-    platforms: [.iOS(.v17), .macOS(.v14), .tvOS(.v17), .watchOS(.v10)],
+    platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
         .library(name: "SwiftUIPresentation", targets: ["SwiftUIPresentation"]),
     ],

@@ -23,7 +23,7 @@ private struct PresentationModalDestinationHost: View {
     var body: some View {
         let root = value.builders(path.stack[namespace]?.item)
 
-        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *) {
+        if #available(iOS 18.0, macOS 15.0, *) {
             PresentationAdaptiveDestinationHost(
                 root: root,
                 path: $path,
@@ -41,7 +41,7 @@ private struct PresentationModalDestinationHost: View {
     }
 }
 
-@available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *)
+@available(iOS 18.0, macOS 15.0, *)
 private struct PresentationAdaptiveDestinationHost: View {
     let root: AnyView
     @Binding var path: PresentationPath
@@ -124,7 +124,7 @@ private struct PresentationDestinationContent: View {
     }
 }
 
-@available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *)
+@available(iOS 18.0, macOS 15.0, *)
 extension ContainerValues {
     @Entry var swiftUIPresentationHost: PresentationHost = .sheet
 }
@@ -157,7 +157,7 @@ private struct PresentationHostModifier: ViewModifier {
 
     @ViewBuilder
     func body(content: Content) -> some View {
-        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *) {
+        if #available(iOS 18.0, macOS 15.0, *) {
             content.containerValue(\.swiftUIPresentationHost, host)
         } else {
             content

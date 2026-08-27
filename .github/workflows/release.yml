@@ -22,11 +22,33 @@ jobs:
         with:
           swift-version: "6.1"
 
+      - name: Resolve dependencies
+        run: swift package resolve
+
+      - name: Build with complete strict concurrency checking
+        run: swift build -Xswiftc -strict-concurrency=complete
+
       - name: Run tests
         run: swift test --parallel
 
       - name: Build package
         run: swift build
+
+      - name: Build for iOS Simulator
+        run: |
+          xcodebuild \
+            -scheme SwiftUIPresentation \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath "$RUNNER_TEMP/SwiftUIPresentation-iOS" \
+            build
+
+      - name: Build for macOS
+        run: |
+          xcodebuild \
+            -scheme SwiftUIPresentation \
+            -destination "generic/platform=macOS" \
+            -derivedDataPath "$RUNNER_TEMP/SwiftUIPresentation-macOS" \
+            build
 
       - name: Build documentation
         run: |

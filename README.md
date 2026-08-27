@@ -141,8 +141,8 @@ swift test
 ```
 
 `SwiftUIPresentation` supports iOS 17+ and macOS 14+. CI compiles both Apple
-targets in addition to running the host tests and DocC generation. The package
-manifest also retains its existing tvOS 17+ and watchOS 10+ declarations.
+targets in addition to running the host tests and DocC generation. tvOS and
+watchOS are intentionally outside the supported platform contract.
 
 The public-state and compatibility guarantees are summarized in
 [API_CONTRACT.md](API_CONTRACT.md).
