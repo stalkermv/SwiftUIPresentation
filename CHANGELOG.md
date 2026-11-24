@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `PresentationRouter.isPresentingModal` (the previous meaning of `isPresented`) and `PresentationRouter.isInModal`, which is `true` when the router's stack is itself shown in a modal
+
+### Deprecated
+- `PresentationRouter.isPresented`; use `isPresentingModal` for "something is shown on top of this stack" or `isInModal` for "this stack is shown in a modal"
+
+### Documentation
+- Destinations are registered per stack: inside an embedded sheet stack, repeat `presentationDestination` before `embedInPresentation()`. The environment router read in a destination belongs to the parent stack
+
 ## [2.0.0-beta.1] - 2026-11-24
 
 ### Added

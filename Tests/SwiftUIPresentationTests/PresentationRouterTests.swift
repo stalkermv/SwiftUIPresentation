@@ -99,3 +99,46 @@ struct PresentationRouterTests {
         #expect(box.value.stack[.root]?.item == nil, "Dismiss from inside sheet should clear root item")
     }
 }
+
+@MainActor
+struct PresentationRouterModalStateTests {
+    private final class Box {
+        var value: PresentationPath
+        init(_ value: PresentationPath) { self.value = value }
+    }
+
+    @Test("isPresentingModal is true only while the namespace presents something")
+    func presentingModal() {
+        let box = Box(PresentationPath())
+        let binding = Binding(get: { box.value }, set: { box.value = $0 })
+        let router = PresentationRouter(namespace: .root, presentationPath: binding)
+
+        #expect(router.isPresentingModal == false)
+        router.present("Modal")
+        #expect(router.isPresentingModal)
+        router.dismiss()
+        #expect(router.isPresentingModal == false)
+    }
+
+    @Test("isInModal is false for the root stack and true for a sheet's stack")
+    func inModal() throws {
+        let box = Box(PresentationPath())
+        box.value.present("Sheet", over: .root)
+        let binding = Binding(get: { box.value }, set: { box.value = $0 })
+        let childKey = try #require(box.value.stack[.root]?.item?.id)
+
+        #expect(PresentationRouter(namespace: .root, presentationPath: binding).isInModal == false)
+        #expect(PresentationRouter(namespace: .child(childKey), presentationPath: binding).isInModal)
+    }
+
+    @available(*, deprecated)
+    @Test("The deprecated isPresented still means isPresentingModal")
+    func deprecatedAlias() {
+        let box = Box(PresentationPath())
+        let binding = Binding(get: { box.value }, set: { box.value = $0 })
+        let router = PresentationRouter(namespace: .root, presentationPath: binding)
+
+        router.present("Modal")
+        #expect(router.isPresented == router.isPresentingModal)
+    }
+}

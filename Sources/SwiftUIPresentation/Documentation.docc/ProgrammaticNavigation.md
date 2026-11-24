@@ -29,8 +29,10 @@ struct UserProfile: View {
 }
 ```
 
-Use ``PresentationRouter/isPresented`` when UI needs to react to whether the
-current namespace already hosts a modal destination.
+Use ``PresentationRouter/isPresentingModal`` when UI needs to react to whether
+the current namespace already presents a modal destination on top of itself, and
+``PresentationRouter/isInModal`` to know whether the stack is itself shown in a
+modal, for example to show a close button.
 
 ## Mutate the path directly
 
@@ -52,3 +54,25 @@ or deterministic test fixtures.
 When a sheet destination calls `embedInPresentation()`, the sheet gets
 its own child namespace. Pushes inside that embedded stack stay isolated from
 the parent presentation flow.
+
+The embedded stack is a separate `NavigationStack`, and destinations registered
+outside it are not visible inside it. Register the destinations that the sheet
+needs, for pushes and for further sheets, on the content inside the sheet, before
+`embedInPresentation()`:
+
+```swift
+.presentationDestination(for: Project.self) { project in
+    ProjectScreen(project: project)
+        .presentationDestination(for: Task.self) { task in
+            TaskScreen(task: task)
+        }
+        .embedInPresentation()
+}
+```
+
+Without the inner `presentationDestination`, a push or a nested sheet inside the
+sheet finds no destination.
+
+`@Environment(\.presentation)` read in the destination view itself still holds
+the router of the parent stack. Read it inside the embedded content to get the
+router of the sheet's own stack.

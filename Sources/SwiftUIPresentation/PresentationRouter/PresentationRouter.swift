@@ -96,9 +96,28 @@ public struct PresentationRouter {
     }
     
     /// A Boolean value that indicates whether this router's namespace currently
-    /// presents a modal destination.
-    public var isPresented: Bool {
+    /// presents a modal destination over itself.
+    ///
+    /// This asks "is something shown on top of this stack?", not "is this stack
+    /// shown in a modal?". Use ``isInModal`` for the second question.
+    public var isPresentingModal: Bool {
         presentationPath.isPresented(in: namespace)
+    }
+
+    /// A Boolean value that indicates whether this router's stack is itself
+    /// shown inside a presented modal.
+    ///
+    /// It is `true` for the router a view gets inside a destination that called
+    /// ``SwiftUICore/View/embedInPresentation()``, and `false` for the root stack.
+    /// A destination reads its own router only inside the embedded content:
+    /// outside it, the environment still holds the router of the parent stack.
+    public var isInModal: Bool {
+        namespace != .root
+    }
+
+    @available(*, deprecated, renamed: "isPresentingModal")
+    public var isPresented: Bool {
+        isPresentingModal
     }
 
     private func mutatePath(_ body: (inout PresentationPath) -> Void) {
