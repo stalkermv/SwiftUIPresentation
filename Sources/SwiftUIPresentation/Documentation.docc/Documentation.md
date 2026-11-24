@@ -97,5 +97,4 @@ and `NavigationLink` are sufficient.
 
 ### Diagnostics
 - ``PresentationPath/debugDescription``
-- ``PresentationRouter/isPresentingModal``
-- ``PresentationRouter/isInModal``
+- ``PresentationRouter/isPresented``

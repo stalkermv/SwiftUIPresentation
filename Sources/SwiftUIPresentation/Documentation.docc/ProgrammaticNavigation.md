@@ -29,10 +29,8 @@ struct UserProfile: View {
 }
 ```
 
-Use ``PresentationRouter/isPresentingModal`` when UI needs to react to whether
-the current namespace already presents a modal destination on top of itself, and
-``PresentationRouter/isInModal`` to know whether the stack is itself shown in a
-modal, for example to show a close button.
+Use ``PresentationRouter/isPresented`` when UI needs to react to whether the
+current namespace already hosts a modal destination.
 
 ## Mutate the path directly
 
