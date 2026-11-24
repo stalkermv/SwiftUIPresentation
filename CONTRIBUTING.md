@@ -23,7 +23,7 @@ Found a bug or have a feature request? [Create an issue](https://github.com/stal
 
 ### Requirements
 - macOS 14.0+
-- Xcode 16.3+
+- Xcode 27.2+
 - Swift 6.1+
 
 ### Building & Testing

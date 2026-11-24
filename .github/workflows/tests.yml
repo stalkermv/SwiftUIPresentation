@@ -2,26 +2,28 @@ name: Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, "2.0" ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, "2.0" ]
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   swift-test:
     name: Swift Test
-    runs-on: macos-15
+    runs-on: xcode-27
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Swift
-        uses: swift-actions/setup-swift@v2
-        with:
-          swift-version: "6.1"
+      - name: Select Xcode 27.2
+        run: sudo xcode-select -s /Applications/Xcode_27.2.app
 
       - name: Show Swift version
         run: swift --version
@@ -40,16 +42,14 @@ jobs:
 
   documentation:
     name: DocC Build Check
-    runs-on: macos-15
+    runs-on: xcode-27
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Swift
-        uses: swift-actions/setup-swift@v2
-        with:
-          swift-version: "6.1"
+      - name: Select Xcode 27.2
+        run: sudo xcode-select -s /Applications/Xcode_27.2.app
 
       - name: Build documentation
         run: |
@@ -61,33 +61,49 @@ jobs:
             --hosting-base-path SwiftUIPresentation
 
   apple-platforms:
-    name: Apple Platform Compile Checks
-    runs-on: macos-15
+    name: Compile for ${{ matrix.destination }}
+    runs-on: xcode-27
+
+    strategy:
+      fail-fast: false
+      matrix:
+        destination:
+          - generic/platform=iOS
+          - generic/platform=macOS
+          - generic/platform=tvOS
+          - generic/platform=watchOS
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Swift
-        uses: swift-actions/setup-swift@v2
-        with:
-          swift-version: "6.1"
+      - name: Select Xcode 27.2
+        run: sudo xcode-select -s /Applications/Xcode_27.2.app
 
       - name: Resolve dependencies
         run: swift package resolve
 
-      - name: Build for iOS Simulator
+      - name: Build for ${{ matrix.destination }}
+        env:
+          DESTINATION: ${{ matrix.destination }}
         run: |
-          xcodebuild \
-            -scheme SwiftUIPresentation \
-            -destination "generic/platform=iOS Simulator" \
-            -derivedDataPath "$RUNNER_TEMP/SwiftUIPresentation-iOS" \
-            build
-
-      - name: Build for macOS
-        run: |
-          xcodebuild \
-            -scheme SwiftUIPresentation \
-            -destination "generic/platform=macOS" \
-            -derivedDataPath "$RUNNER_TEMP/SwiftUIPresentation-macOS" \
-            build
+          log="${RUNNER_TEMP:-/tmp}/build.log"
+          build() {
+            xcodebuild build \
+              -scheme SwiftUIPresentation \
+              -destination "$DESTINATION" \
+              -derivedDataPath "${RUNNER_TEMP:-/tmp}/SwiftUIPresentation-derived" \
+              CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$log"
+            return "${PIPESTATUS[0]}"
+          }
+          if ! build; then
+            # Some runners come without the device platform that Xcode needs for a
+            # generic destination. Install it and retry; fail on any other error.
+            platform="${DESTINATION#generic/platform=}"
+            if grep -q "is not installed" "$log"; then
+              xcodebuild -downloadPlatform "$platform"
+              build
+            else
+              exit 1
+            fi
+          fi

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-beta.1] - 2026-11-24
+
 ### Added
 - Documentation rewrite for the public API and DocC guides
 - GitHub Actions workflows for tests, documentation, and releases
@@ -31,9 +33,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   removed; it always terminated at runtime and had no destination value
 - `PresentationPath` no longer claims `Sendable` because it stores SwiftUI
   navigation state and type-erased values
-- The supported platform contract is now explicit: iOS 17+ and macOS 14+;
-  tvOS and watchOS declarations were removed
-- The next tagged release should be `2.0.0`
+- Depends on SwiftUIHelpers `from: "2.0.0-beta.2"` (a pre-release)
+
+### Platforms
+- Supported platforms are iOS 17+, macOS 14+, tvOS 17+ and watchOS 10+; the
+  package builds for all four
+- On tvOS and watchOS every modal host is a sheet, because there is no popover
+  there and a full-screen cover would not differ from a sheet
+- CI runs on Xcode 27.2 and compiles for iOS, macOS, tvOS and watchOS
 
 ## [1.0.0] - 2026-03-12
 

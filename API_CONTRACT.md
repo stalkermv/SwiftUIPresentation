@@ -58,8 +58,9 @@ To select a modal host from a destination, use:
 
 `.fullScreenCover` is available as a host on iOS. On macOS it falls back to a
 sheet. Host selection is available on iOS 18/macOS 15 and later; older runtimes
-use a standard sheet host. The package manifest declares iOS 17+ and macOS 14+;
-tvOS and watchOS are outside the supported platform contract.
+use a standard sheet host. On tvOS and watchOS every host is a sheet: there is
+no popover, and a full-screen cover would not differ from a sheet. The package
+manifest declares iOS 17+, macOS 14+, tvOS 17+ and watchOS 10+.
 
 ## Compatibility and migration
 

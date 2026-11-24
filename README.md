@@ -2,10 +2,10 @@
 
 [![Tests](https://github.com/stalkermv/SwiftUIPresentation/actions/workflows/tests.yml/badge.svg)](https://github.com/stalkermv/SwiftUIPresentation/actions/workflows/tests.yml)
 [![Swift 6.1+](https://img.shields.io/badge/Swift-6.1+-orange.svg)](https://swift.org)
-[![Platform](https://img.shields.io/badge/platform-iOS%2017%2B%20%7C%20macOS%2014%2B-lightgrey.svg)](https://developer.apple.com/swift/)
+[![Platform](https://img.shields.io/badge/platform-iOS%2017%2B%20%7C%20macOS%2014%2B%20%7C%20tvOS%2017%2B%20%7C%20watchOS%2010%2B-lightgrey.svg)](https://developer.apple.com/swift/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Unified SwiftUI navigation for iOS and macOS with stack and modal flows backed by a single testable path.
+Unified SwiftUI navigation for iOS, macOS, tvOS and watchOS with stack and modal flows backed by a single testable path.
 
 - Register each destination type once with `presentationDestination(for:)`
 - Present the same destination as a sheet, full-screen cover, popover, or stack push
@@ -16,9 +16,11 @@ Unified SwiftUI navigation for iOS and macOS with stack and modal flows backed b
 
 Add `SwiftUIPresentation` to your `Package.swift`:
 
+2.0 is currently a pre-release, so the requirement has to name it; `from: "2.0.0"` does not resolve pre-releases.
+
 ```swift
 dependencies: [
-    .package(url: "https://github.com/stalkermv/SwiftUIPresentation.git", from: "1.0.0")
+    .package(url: "https://github.com/stalkermv/SwiftUIPresentation.git", from: "2.0.0-beta.1")
 ],
 targets: [
     .target(
@@ -74,8 +76,10 @@ Keep one destination registration and choose the modal host in the destination i
 
 `presentationHost(_:)` selects the modal host for a destination. On iOS 18 and
 macOS 15 or later, `.sheet`, `.popover`, and (on iOS) `.fullScreenCover` are
-available. On iOS 17 and macOS 14, modal destinations use a standard sheet so
-the same flow remains usable.
+available. On tvOS and watchOS every modal host is a sheet, because there is no
+popover and a full-screen cover would not differ from a sheet. On iOS 17 and
+macOS 14, modal destinations use a standard sheet so the same flow remains
+usable.
 
 For push navigation, use the same destination with a different trigger:
 
@@ -140,9 +144,9 @@ Run the package tests:
 swift test
 ```
 
-`SwiftUIPresentation` supports iOS 17+ and macOS 14+. CI compiles both Apple
-targets in addition to running the host tests and DocC generation. tvOS and
-watchOS are intentionally outside the supported platform contract.
+`SwiftUIPresentation` supports iOS 17+, macOS 14+, tvOS 17+ and watchOS 10+. CI
+compiles all four Apple platforms in addition to running the host tests and
+DocC generation.
 
 The public-state and compatibility guarantees are summarized in
 [API_CONTRACT.md](API_CONTRACT.md).
