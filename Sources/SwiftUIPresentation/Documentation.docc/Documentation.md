@@ -1,6 +1,6 @@
 # ``SwiftUIPresentation``
 
-Create iOS navigation flows that combine stack pushes and modal presentations
+Create iOS and macOS navigation flows that combine stack pushes and modal presentations
 without splitting state across multiple APIs.
 
 ## Overview
@@ -15,7 +15,7 @@ multiple contexts, making your navigation logic easier to test and maintain.
 1. Wrap your content in a ``PresentationStack``
 2. Use `presentationDestination(for:destination:)` to map data types to views
 3. Trigger navigation with ``PresentationLink`` or the environment ``PresentationRouter``
-4. Optionally set `presentationAdaptation(_:)` on the destination to choose the modal host
+4. Optionally set `presentationHost(_:)` on the destination to choose the modal host
 
 ```swift
 @State private var path = PresentationPath()
@@ -34,7 +34,7 @@ PresentationStack(path: $path) {
     }
     .presentationDestination(for: User.self) { user in
         UserProfile(user: user)
-            .presentationAdaptation(.fullScreenCover)
+            .presentationHost(.fullScreenCover)
     }
 }
 ```
@@ -43,7 +43,7 @@ PresentationStack(path: $path) {
 
 * **Unified state**: One path manages both stack pushes and sheet presentations
 * **Destination reuse**: Register a destination once and reuse it for different presentation styles
-* **Modal adaptation**: Keep `PresentationLink(value:)` unchanged and choose the host from the destination
+* **Modal host selection**: Keep `PresentationLink(value:)` unchanged and choose the host from the destination
 * **Default sheet behavior**: Present values with a single link by default
 * **Nested flows**: Sheets automatically get isolated navigation contexts
 * **Testable navigation**: Programmatic control through value-based APIs
@@ -57,8 +57,8 @@ Navigate forward and backward with clear, predictable methods:
 @Environment(\.presentation) private var router
 
 // Navigate forward
-router?.push(value: user)        // Add to stack
-router?.present(value: settings) // Show as sheet
+router?.push(user)        // Add to stack
+router?.present(settings) // Show as sheet
 
 // Navigate backward
 router?.pop()      // Remove last stack item or dismiss sheet
@@ -79,8 +79,12 @@ and `NavigationLink` are sufficient.
 ### Essentials
 - ``PresentationStack``
 - ``PresentationLink``
+- ``PresentationMethod``
 - ``PresentationPath``
 - ``PresentationRouter``
+
+### Modal hosts
+- ``PresentationHost``
 
 ### Namespaces
 - ``PresentationStackNamespace``

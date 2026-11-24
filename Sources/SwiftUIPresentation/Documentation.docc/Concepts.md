@@ -40,7 +40,7 @@ destinations once and navigate by presenting values:
 // Register what to show for each type
 .presentationDestination(for: User.self) { user in
     UserProfile(user: user)
-        .presentationAdaptation(.fullScreenCover)
+        .presentationHost(.fullScreenCover)
 }
 
 // Navigate by presenting values
@@ -57,7 +57,7 @@ view trigger navigation without prop drilling:
 @Environment(\.presentation) private var router
 
 Button("Settings") {
-    router?.present(value: SettingsData())
+    router?.present(SettingsData())
 }
 ```
 

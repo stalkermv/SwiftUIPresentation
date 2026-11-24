@@ -8,13 +8,5 @@
 import SwiftUI
 
 extension EnvironmentValues {
-    @MainActor public var presentation: PresentationRouter? {
-        get { self[PresentationEnvironmentKey.self] }
-        set { self[PresentationEnvironmentKey.self] = newValue }
-    }
+    @Entry @MainActor public var presentation: PresentationRouter?
 }
-
-private struct PresentationEnvironmentKey: EnvironmentKey {
-    static let defaultValue: PresentationRouter? = nil
-}
-

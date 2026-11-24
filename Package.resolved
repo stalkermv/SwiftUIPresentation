@@ -1,13 +1,13 @@
 {
-  "originHash" : "2dd473a72a2fad7a37450428ea9a0affbcd300220a27bff1b8a020d7d6341a05",
+  "originHash" : "02c2a6c4972d4f217a7b3619ad0616fe4810cfdb9cc45ae001f56e8616f588b8",
   "pins" : [
     {
       "identity" : "swift-docc-plugin",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-docc-plugin",
       "state" : {
-        "revision" : "3e4f133a77e644a5812911a0513aeb7288b07d06",
-        "version" : "1.4.5"
+        "revision" : "647c708be89f834fa6a6d4945442793a77ddf5b6",
+        "version" : "1.5.0"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/stalkermv/SwiftHelpers.git",
       "state" : {
-        "revision" : "7438920f3c299491b9098d7e428af0c0f18511ef",
-        "version" : "1.0.8"
+        "revision" : "ba02d4581df21b137c2fc13c2f78a6aee8a2e208",
+        "version" : "1.3.0"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/stalkermv/SwiftUIHelpers.git",
       "state" : {
-        "revision" : "8de009a4296aba6556144919452e980711aa9a66",
-        "version" : "1.0.4"
+        "revision" : "4ba031322c8a5366e9e1d068c0d9bf325b132169",
+        "version" : "2.0.0-beta.2"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nalexn/ViewInspector.git",
       "state" : {
-        "revision" : "a6fcac8485bc8f57b2d2b55bb6d97138e8659e4b",
-        "version" : "0.10.2"
+        "revision" : "2dacb6e514be19379c605a5a11564d0f3fea89d9",
+        "version" : "0.10.5"
       }
     }
   ],
