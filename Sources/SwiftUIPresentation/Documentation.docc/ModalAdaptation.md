@@ -54,3 +54,6 @@ Host selection is honored on iOS 18 and macOS 15 or later. On iOS 17 and macOS
 14, destinations use a standard sheet host so the flow remains usable. The
 deprecated `presentationAdaptation(_:)` method is only a compatibility wrapper
 for SwiftUI's compact-size-class adaptation; it is not a host selector.
+
+On tvOS and watchOS every modal host is a sheet: there is no popover, and a
+full-screen cover would not differ from a sheet.

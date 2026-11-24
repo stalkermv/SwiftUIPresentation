@@ -23,7 +23,7 @@ private struct PresentationModalDestinationHost: View {
     var body: some View {
         let root = value.builders(path.stack[namespace]?.item)
 
-        if #available(iOS 18.0, macOS 15.0, *) {
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
             PresentationAdaptiveDestinationHost(
                 root: root,
                 path: $path,
@@ -41,7 +41,7 @@ private struct PresentationModalDestinationHost: View {
     }
 }
 
-@available(iOS 18.0, macOS 15.0, *)
+@available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
 private struct PresentationAdaptiveDestinationHost: View {
     let root: AnyView
     @Binding var path: PresentationPath
@@ -70,8 +70,12 @@ private struct PresentationModalHostView: View {
     private var effectiveStyle: PresentationHost {
         #if os(iOS)
         style
-        #else
+        #elseif os(macOS)
         style == .fullScreenCover ? .sheet : style
+        #else
+        // tvOS and watchOS have no popover, and a full-screen cover would not
+        // differ from a sheet there, so every host is a sheet.
+        .sheet
         #endif
     }
 
@@ -87,12 +91,17 @@ private struct PresentationModalHostView: View {
             .popover(isPresented: presentationBinding(for: .popover)) {
                 PresentationDestinationContent(path: $path, namespace: namespace, value: value)
             }
-        #else
+        #elseif os(macOS)
         Color.clear
             .sheet(isPresented: presentationBinding(for: .sheet)) {
                 PresentationDestinationContent(path: $path, namespace: namespace, value: value)
             }
             .popover(isPresented: presentationBinding(for: .popover)) {
+                PresentationDestinationContent(path: $path, namespace: namespace, value: value)
+            }
+        #else
+        Color.clear
+            .sheet(isPresented: presentationBinding(for: .sheet)) {
                 PresentationDestinationContent(path: $path, namespace: namespace, value: value)
             }
         #endif
@@ -124,7 +133,7 @@ private struct PresentationDestinationContent: View {
     }
 }
 
-@available(iOS 18.0, macOS 15.0, *)
+@available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
 extension ContainerValues {
     @Entry var swiftUIPresentationHost: PresentationHost = .sheet
 }
@@ -157,7 +166,7 @@ private struct PresentationHostModifier: ViewModifier {
 
     @ViewBuilder
     func body(content: Content) -> some View {
-        if #available(iOS 18.0, macOS 15.0, *) {
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
             content.containerValue(\.swiftUIPresentationHost, host)
         } else {
             content
